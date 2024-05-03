@@ -26,6 +26,11 @@ body {
 								 not supported by any browser */
 }
 
+.d-flex {
+	display: grid;
+	justify-content: center;
+}
+
 .container {
 	max-width: 1400px;
 	margin: 0 auto;

@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from PIL import Image
 
-from config.settings import MEDIA_URL
+from config.settings import MEDIA_URL, AUTH_USER_MODEL
 
 class CustomUsernameValidator(RegexValidator):
     def __call__(self, value):
@@ -102,6 +102,14 @@ class CustomUser(AbstractUser):
             self.picture.delete()
         super().delete(*args, **kwargs)
 
+class AnonimReader(models.Model):
+    read_date = models.DateTimeField(auto_now_add=True)
+    ip = models.CharField(max_length=100)
+    device_id = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.device_id
+
 class Posts(models.Model):
     creater = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, verbose_name="Заголовок")
@@ -110,6 +118,7 @@ class Posts(models.Model):
     time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
     time_update = models.DateTimeField(auto_now=True, verbose_name="Время изменения")
     is_published = models.BooleanField(default=False, verbose_name="Публикация")
+    views = models.ManyToManyField(AnonimReader, blank=True)
 
     def __str__(self):
         return self.title
@@ -121,3 +130,12 @@ class Posts(models.Model):
         verbose_name = 'Посты'
         verbose_name_plural = 'Посты'
         ordering = ['-time_create', 'title']
+
+
+class Like(models.Model):
+    user = models.ForeignKey(AUTH_USER_MODEL,
+                             related_name='likes',
+                             default=None,
+                             on_delete=models.CASCADE)
+    article = models.ForeignKey(Posts, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(default=0)

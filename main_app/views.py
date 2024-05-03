@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView
 from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseNotFound
 
 from .models import *
 from .forms import *
@@ -193,8 +194,22 @@ def edit_user_profile(request, username):
 
 def show_posts(request, pk):
     post = Posts.objects.get(pk=pk)
+
+    views = post.views.count()
+    likes = post.like_set.count()
+    like = False
+
+    if request.user.is_authenticated:
+        if post.like_set.filter(user=request.user).exists():
+            like = True
+
     context = {
         'title': 'Сообщение',
         'post': post,
+        'views': views,
+        'likes': likes,
+        'is_auth': request.user.is_authenticated,
+        'user_like': like,
+        'user_r': request.user,
     }
     return render(request, 'show_posts.html', context)

@@ -17,7 +17,9 @@
         {{post.content|linebreaks}}
         {% endautoescape %}
         <div class="clear"></div>
-        Автор: {{ post.creater.username }}
+        Просмотров:
+        <span class="views-count">{{ views }}</span>
+        <p>Автор: {{ post.creater.username }}</p>
     </li>
     {% if user.pk == post.creater.pk %}
     <a href="{% url 'edit_post' post.pk %}">Изменить</a>
