@@ -22,6 +22,7 @@
 			<div class="clear"></div>
 			Автор: {{ p.creater.username }}
 		</li>
+		<a href="{% url 'show_posts' p.pk %}">Открыть</a>
 		{% if user.pk == p.creater.pk %}
 		<a href="{% url 'edit_post' p.pk %}">Изменить</a>
 		<a href="{% url 'delete_posts' p.pk %}">Удалить</a>

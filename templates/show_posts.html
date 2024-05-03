@@ -1,0 +1,28 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block content %}
+<div>
+    <li>
+        <div class="article-panel">
+            <p class="last">Дата: {{post.time_update|date:"d-m-Y H:i:s"}}</p>
+        </div>
+    
+        {% if post.photo %}
+        <p><img style="max-width: 150px;" class="img-article-left thumb" src="{{ post.photo.url }}"></p>
+        {% endif %}
+    
+        <h2>{{post.title}}</h2>
+        {% autoescape on %}
+        {{post.content|linebreaks}}
+        {% endautoescape %}
+        <div class="clear"></div>
+        Автор: {{ post.creater.username }}
+    </li>
+    {% if user.pk == post.creater.pk %}
+    <a href="{% url 'edit_post' post.pk %}">Изменить</a>
+    <a href="{% url 'delete_posts' post.pk %}">Удалить</a>
+    {% endif %}
+    <hr>
+</div>
+{% endblock %}

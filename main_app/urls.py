@@ -12,6 +12,7 @@ urlpatterns = [
     path('edit_post/<int:post_id>/', edit_post, name='edit_post'),
     path('user_profile/<str:username>/', show_user_profile, name='user_profile'),
     path('user_profile/edit/<str:username>/', edit_user_profile, name='edit_profile'),
+    path('show_post/<int:pk>/', show_posts, name='show_posts'),
 
     # регистрация / авторизация
     path('signup/', signup, name='account_signup'),

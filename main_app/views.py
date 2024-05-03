@@ -190,3 +190,11 @@ def edit_user_profile(request, username):
         'user_instance': user_instance
     }
     return render(request, 'edit_user.html', context)
+
+def show_posts(request, pk):
+    post = Posts.objects.get(pk=pk)
+    context = {
+        'title': 'Сообщение',
+        'post': post,
+    }
+    return render(request, 'show_posts.html', context)
