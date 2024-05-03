@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Мой блог о всем</title>
+	{% load static %}
+	<link rel="shortcut icon" type="image/png" href="{% static 'static/img/favicon.ico' %}"/>
+	<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+	<header class="header">
+		<div class="container">
+			<div class="header-inside">
+				<a href="{% url 'articles:index' %}" class="header-logo">TalkTrove</a>
+				<nav class="nav">
+					<ul class="nav-group">
+						<li class="nav-list"><a href="/" class="nav-link">Главная</a></li>
+						<li class="nav-list"><a href="{% url 'articles:contacts' %}" class="nav-link scrollto">Контакты</a></li>
+					</ul>
+				</nav>
+					{% if is_auth == True %}
+					<div class="header-user-bar" onclick="menuToggle();">
+					{% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="user avatar" class="user-avatar">
+                    {% else %}
+                        <img src="{% static 'img/avatar1.svg' %}" alt="user avatar" class="user-avatar">
+                    {% endif %}
+					<div class="user-name unselectable">{{ user.username }}</div>
+					<div class="user-arrow">
+						<svg height="8" viewBox="0 0 12 8" width="12" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" clip-rule="evenodd" d="M2.16 2.3a.75.75 0 011.05-.14L6 4.3l2.8-2.15a.75.75 0 11.9 1.19l-3.24 2.5c-.27.2-.65.2-.92 0L2.3 3.35a.75.75 0 01-.13-1.05z" fill-rule="evenodd"></path></svg>
+					</div>
+				</div>
+				<div class="header-user-menu">
+					<ul class="user-menu-group">
+						<form action="{% url 'articles:logout' %}" method="post">
+							{% csrf_token %}
+						<li class="user-menu-list"><img src="{% static 'img/exit.svg' %}" class="user-menu-ico"><button class="user-menu-link">Выйти</button></li>
+						</form>
+                        <li class="user-menu-list"><img src="{% static 'img/profile.svg' %}" class="user-menu-ico"><a href="{% url 'articles:profile' %}" class="user-menu-link">Профиль</a></li>
+					</ul>
+				</div>
+					{% else %}
+				<div class="sign-wrap">
+					<button class="login-btn" id="login">Войти</button>
+					<button class="registr-btn" id="registr">Регистрация</button>
+				</div>
+					{% endif %}
+				<a href="#" class="menu-btn">
+					<span class="menu-btn-arr"></span>
+				</a>
+			</div>
+		</div>
+	</header>
+	<main class="main">
+		<div class="container">
+			<section class="article">
+                {% if article.article_image %}
+                    <img class="article-image" src="{{ article.article_image.url }}" alt="article image">
+                {% endif %}
+                <div class="article-info">
+                    <h3 class="article-title">{{ article.Title }}</h3>
+                    <p class="article-content">{{ article.Text }}</p>
+                    <div class="social-info">
+                        <button class="likes-btn">
+                            {% if user_like %}
+                            <img src="{% static 'img/heart.svg' %}" alt="" class="likes-icon" id="like-icon">
+                            {% else %}
+                            <img src="{% static 'img/heart-outline.svg' %}" alt="" class="likes-icon" id="like-icon">
+                            {% endif %}
+                            <span class="likes-count" id="like-count">{{ likes }}</span>
+                        </button>
+                        <button class="views-btn">
+                            <ion-icon name="eye-outline" class="views-icon"></ion-icon>
+                            <span class="views-count">{{ views }}</span>
+                        </button>
+                    </div>
+                </div>
+			</section>
+		</div>
+	</main>
+
+	<section class="mobile-menu">
+		<ul class="mobile-group">
+			<li class="mobile-list"><a href="#" class="mobile-link">Главная</a></li>
+			<li class="mobile-livst"><a href="#forum" class="mobile-link">Форум</a></li>
+			<li class="mobile-list"><a href="#contacts" class="mobile-link">Контакты</a></li>
+		</ul>
+		<div class="mobile-sign-wrap">
+			{% if is_auth == True %}
+					<form action="{% url 'articles:logout' %}" method="post">
+						{% csrf_token %}
+						<button class="mobile-login-btn">Выйти</button>
+					</form>
+			{% else %}
+					<button class="mobile-login-btn" id="mobile-login">Войти</button>
+					<button class="mobile-registr-btn" id="mobile-registr">Регистрация</button>
+			{% endif %}
+		</div>
+	</section>
+	<section class="modal" id="loginModal">
+		<div class="modal-dialog">
+			<button class="modal-close" type="button"><span class="modal-close-btn"></span></button>
+			<h2>Личный кабинет</h2>
+				{% csrf_token %}
+				<p>
+					<label class="visually-hidden" for="user-login">Логин</label>
+					<input class="login-icon-user" id="user-login" type="text" name="login">
+
+				</p>
+				<p>
+					<label class="visually-hidden" for="user-password">Пароль</label>
+					<input class="login-icon-password" id="user-password" type="password" name="password">
+				</p>
+				<p class="login-password-info">
+					<label class="login-checkbox">
+						<input type="checkbox" name="remember" id="remember" class="visually-hidden">
+						<span class="checkbox-indicator"></span>
+						Запомните меня
+					</label>
+				</p>
+				<button class="modal-login-btn" type="submit" onclick="login()">Войти</button>
+		</div>
+	</section>
+	<section class="modal" id="registerModal">
+		<div class="modal-dialog">
+			<button class="modal-close" type="button"><span class="modal-close-btn"></span></button>
+			<h2>Регистрация</h2>
+				{% csrf_token %}
+				<p>
+					<label class="visually-hidden" for="register-login">Логин</label>
+					<input class="login-icon-user" id="register-login" type="text" name="login">
+
+				</p>
+				<p>
+					<label class="visually-hidden" for="register-password">Пароль</label>
+					<input class="login-icon-password" id="register-password" type="password" name="password">
+				</p>
+				<p>
+					<label class="visually-hidden" for="register-password-confirm">Пароль</label>
+					<input class="login-icon-password" id="register-password-confirm" type="password" name="password">
+				</p>
+				<p class="login-password-info">
+					<label class="login-checkbox">
+						<input type="checkbox" name="remember" id="register" class="visually-hidden">
+						<span class="checkbox-indicator"></span>
+						Запомните меня
+					</label>
+				</p>
+				<button class="modal-login-btn" type="submit" onclick="register()">Войти</button>
+		</div>
+	</section>
+	<div class="overlay"></div>
+	<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+	<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="{% static 'js/smooth_scroll.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/_ajax.js' %}"></script>
+
+	<!-- <script type="text/javascript" src="js/sign.js"></script> -->
+	<script type="text/javascript" src="{% static 'js/burger.js' %}"></script>
+	<script>
+		function menuToggle() {
+			const toggleMenu = document.querySelector('.header-user-menu')
+			const toggleArrow = document.querySelector('.user-arrow')
+			const activeBar = document.querySelector('.header-user-bar')
+			toggleMenu.classList.toggle('active')
+			toggleArrow.classList.toggle('active')
+			activeBar.classList.toggle('active')
+		}
+		async function getDeviceId() {
+			let deviceId = localStorage.getItem('deviceId');
+
+			if (!deviceId) {
+				const combinedId = [
+					navigator.userAgent,
+					window.screen.width,
+					window.screen.height,
+					window.screen.colorDepth,
+					new Date().getTime(),
+				].join('-');
+
+				const encoder = new TextEncoder();
+				const data = encoder.encode(combinedId);
+				const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+				const hashArray = Array.from(new Uint8Array(hashBuffer));
+				deviceId = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+				localStorage.setItem('deviceId', deviceId);
+			}
+
+			return deviceId;
+		}
+
+
+		async function view_article() {
+			let device_id = await getDeviceId()
+			$.ajax({
+				url: "read",
+				type: "post",
+				data: {
+					device_id: device_id
+				}
+			})
+		}
+		view_article()
+	</script>
+</body>
+</html>

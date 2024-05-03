@@ -1,0 +1,20 @@
+<!-- templates/account/edit_flying.html -->
+{% extends '_base.html' %}
+
+{% block content %}
+<div class="d-flex jc-center">
+    <div class="d-flex jc-center ai-fs mw1000 w80">
+        <div class="w100 c-b">
+            <div class="pc mw100 d-block p10">
+                <h2>Редактирование перелёта</h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button class="wb col-m wct" type="submit">Сохранить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

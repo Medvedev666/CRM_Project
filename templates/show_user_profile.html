@@ -1,0 +1,78 @@
+{% extends '_base.html' %}
+{% load static %}
+{% block content %}
+<h2>Личный кабинет</h2>
+
+<div class="d-flex jc-center">
+    <div class="d-flex jc-center ai-fs mw80">
+        <div>
+            <div class="bmi">
+                <div class="d-flex jc-center">
+                    <div class="is">
+                        <img src="{{ user_model.get_picture }}" alt="ava-{{ user_model.username }}">
+                    </div>
+                </div>
+                <h3>{{ user_model.username }}</h3>
+                    
+                <ul class="cppis">
+                    <li>{% if user_model.first_name %}
+                        {{ user_model.first_name }}
+                        {% else %}Имя не указано{% endif %}{% if user_model.last_name %}
+                        {{ user_model.last_name }}{% else %}</li>
+                    <li>Фамилия не указана{% endif %}</li>
+
+                    <li>e-mail: {% if user_model.email %}{{ user_model.email }}{% else %}Не указано{% endif %}</li>
+                </ul>
+                {% if user_model.pk == request_user.pk %}
+                <div class="d-flex jc-center">
+                    <a class="wb col-m wct" href="{% url 'edit_profile' username=user_model.username %}">
+                        <span>Редактировать</span>
+                    </a>
+                </div>
+                {% endif %}
+                <div class="ta-c mt10">
+                    <span>С нами с {{ user_model.date_joined|date:"d F Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            </div>
+
+            {% if user_model.pk == request_user.pk %}
+            <h2>Ваши сообщения:</h2>
+            <div class="pc mw100 d-non" id="mr2">
+                {% for p in user_ad %}
+                <li>
+                    <div class="article-panel">
+                        <p class="last">Дата: {{p.time_update|date:"d-m-Y H:i:s"}}</p>
+                    </div>
+                
+                    {% if p.photo %}
+                    <p><img style="max-width: 150px;" class="img-article-left thumb" src="{{ p.photo.url }}"></p>
+                    {% endif %}
+                
+                    <h2>{{p.title}}</h2>
+                    {% autoescape on %}
+                    {{p.content|linebreaks}}
+                    {% endautoescape %}
+                    <div class="clear"></div>
+                    Автор: {{ p.creater.username }}
+                </li>
+                {% if user.pk == p.creater.pk %}
+                <a href="{% url 'edit_post' p.pk %}">Изменить</a>
+                <a href="{% url 'delete_posts' p.pk %}">Удалить</a>
+                {% endif %}
+                {% if p.is_published %}
+                <h5>Опубликовано</h5>
+                {% else %}
+                <h5>Не опубликовано</h5>
+                {% endif %}
+                <hr>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

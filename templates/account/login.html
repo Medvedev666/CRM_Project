@@ -1,0 +1,37 @@
+{% extends '_base.html' %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+{% include "account/snippets/already_logged_in.html" %}
+{% endif %}
+
+<div class="ew p-center">
+<h2>Вход</h2>
+    <form method="post">
+        <div class="d-grid">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+            <p type="error">{{ error }}</p>
+            {% endfor %}
+            {% endif %}
+            <input type="text" name="username" placeholder="Имя пользователя" autocomplete="username" maxlength="150"
+                required="" id="id_username" 
+                value="{% if form.username.value %}{{ form.username.value }}{% endif %}">
+            <input type="password" name="password" placeholder="Пароль" autocomplete="current-password" required=""
+                aria-describedby="id_password_helptext" id="id_password">
+            <span class="helptext" id="id_password_helptext">
+                <a href="{% url 'account_reset_password' %}">Забыли пароль?</a>
+            </span>
+            <div>
+                <label for="id_remember">Запомнить меня:</label>
+                <input type="checkbox" name="remember" id="id_remember">
+            </div>
+        </div>
+        <button type="submit">ВОЙТИ</button>
+    </form>
+</div>
+{% endblock %}
