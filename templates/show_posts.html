@@ -2,29 +2,27 @@
 {% load static %}
 
 {% block content %}
-<div>
-    <li>
-        <div class="article-panel">
-            <p class="last">Дата: {{post.time_update|date:"d-m-Y H:i:s"}}</p>
-        </div>
-    
-        {% if post.photo %}
-        <p><img style="max-width: 150px;" class="img-article-left thumb" src="{{ post.photo.url }}"></p>
-        {% endif %}
-    
-        <h2>{{post.title}}</h2>
-        {% autoescape on %}
-        {{post.content|linebreaks}}
-        {% endautoescape %}
-        <div class="clear"></div>
-        Просмотров:
-        <span class="views-count">{{ views }}</span>
-        <p>Автор: {{ post.creater.username }}</p>
-    </li>
-    {% if user.pk == post.creater.pk %}
-    <a href="{% url 'edit_post' post.pk %}">Изменить</a>
-    <a href="{% url 'delete_posts' post.pk %}">Удалить</a>
-    {% endif %}
-    <hr>
-</div>
+<main class="main">
+    <div class="container">
+        <section class="blog">
+            <div class="top-block">
+            </div>
+            <img style="max-width: 600px;" src="{{ post.photo.url }}" alt="post image">
+            <div class="blog-block">
+                <h1 class="blog-title">{{ post.title }}</h1>
+                <p class="blog-content">{{ post.content }}</p>
+                <!-- Просмотры и дата публикации -->
+                <div class="blog-info">
+                    <p style="margin-right: 10px;">Автор:</p>
+                    <a style="margin-right: 20px;" href="{% url 'user_profile' username=post.creater.username %}"> 
+                        {{ post.creater.get_full_name }}
+                    </a>
+                    <time class="blog-data">{{ post.time_create }}</time>
+                    <ion-icon name="eye-outline" class="views-icon"></ion-icon>
+                    <span class="views-count">Просмотры: {{ post.views.count }}</span>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
 {% endblock %}

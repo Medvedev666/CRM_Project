@@ -2,28 +2,32 @@
 {% load static %}
 
 {% block content %}
-<div>
-    <ul class="list-articles">
-        {% for p in new_posts %}
-        <li>
-            <div class="article-panel">
-                <p class="last">Дата: {{p.time_update|date:"d-m-Y H:i:s"}}</p>
+<main class="main">
+    <div class="container">
+        <section>
+            <p class="hero-subtitle">Cообщения</p>
+        </section>
+        {% for article in new_posts %}
+        <section class="blog">
+            <div class="top-block">
             </div>
-    
-            {% if p.photo %}
-            <p><img style="max-width: 150px;" class="img-article-left thumb" src="{{ p.photo.url }}"></p>
-            {% endif %}
-    
-            <h2>{{p.title}}</h2>
-            {% autoescape on %}
-            {{p.content|linebreaks}}
-            {% endautoescape %}
-            <div class="clear"></div>
-            Автор: {{ p.creater.username }}
-        </li>
-        <a href="{% url 'public_posts' p.pk %}">Опубликовать</a>
-        <a href="{% url 'delete_posts' p.pk %}">Удалить</a>
+            <img class="blog-image" src="{{ article.photo.url }}" alt="article image">
+            <div class="blog-block">
+                <h1 class="blog-title">{{ article.title }}</h1>
+                <p class="blog-content">{{ article.content }}... <a href="{% url 'show_posts' pk=article.pk %}">Читать
+                        ещё ></a></p>
+                <!-- Просмотры и дата публикации -->
+                <div class="blog-info">
+                    <p style="margin-right: 10px;">Автор:</p>
+                    <a style="margin-right: 20px;" href="{% url 'user_profile' username=article.creater.username %}"> 
+                        {{ article.creater.get_full_name }}</a>
+                    <time class="blog-data">{{ article.time_create }}</time>
+                </div>
+            </div>
+            <a href="{% url 'public_posts' article.pk %}">Опубликовать</a>
+            <a href="{% url 'delete_posts' article.pk %}">Удалить</a>
+        </section>
         {% endfor %}
-    </ul>
-</div>
+    </div>
+</main>
 {% endblock %}

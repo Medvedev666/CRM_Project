@@ -11,19 +11,19 @@
 <div class="ew p-center">
 <h2>Вход</h2>
     <form method="post">
-        <div class="d-grid">
+        <div class="modal-dialog">
             {% csrf_token %}
             {% if form.non_field_errors %}
             {% for error in form.non_field_errors %}
             <p type="error">{{ error }}</p>
             {% endfor %}
             {% endif %}
-            <input type="text" name="username" placeholder="Имя пользователя" autocomplete="username" maxlength="150"
+            <input class="login-password-info" type="text" name="username" placeholder="Имя пользователя" autocomplete="username" maxlength="150"
                 required="" id="id_username" 
                 value="{% if form.username.value %}{{ form.username.value }}{% endif %}">
-            <input type="password" name="password" placeholder="Пароль" autocomplete="current-password" required=""
+            <input class="login-password-info" type="password" name="password" placeholder="Пароль" autocomplete="current-password" required=""
                 aria-describedby="id_password_helptext" id="id_password">
-            <span class="helptext" id="id_password_helptext">
+            <span class="login-password-info" class="helptext" id="id_password_helptext">
                 <a href="{% url 'account_reset_password' %}">Забыли пароль?</a>
             </span>
             <div>
@@ -31,7 +31,36 @@
                 <input type="checkbox" name="remember" id="id_remember">
             </div>
         </div>
-        <button type="submit">ВОЙТИ</button>
+        <button class="modal-login-btn" type="submit">ВОЙТИ</button>
     </form>
 </div>
+
+<section class="modal">
+    <div class="modal-dialog">
+        <button class="modal-close" type="button"><span class="modal-close-btn"></span></button>
+        <h2>Личный кабинет</h2>
+        {% csrf_token %}
+        <p>
+            <label class="visually-hidden" for="user-login">Логин</label>
+            <input type="text" name="username" placeholder="Имя пользователя" autocomplete="username" maxlength="150" required=""
+                id="id_username" value="{% if form.username.value %}{{ form.username.value }}{% endif %}">
+
+        </p>
+        <p>
+            <label class="visually-hidden" for="user-password">Пароль</label>
+            <input type="password" name="password" placeholder="Пароль" autocomplete="current-password" required=""
+                aria-describedby="id_password_helptext" id="id_password">
+        </p>
+        <p class="login-password-info">
+            <span class="helptext" id="id_password_helptext">
+                <a href="{% url 'account_reset_password' %}">Забыли пароль?</a>
+            </span>
+            <div>
+                <label for="id_remember">Запомнить меня:</label>
+                <input type="checkbox" name="remember" id="id_remember">
+            </div>
+        </p>
+        <button class="modal-login-btn" type="submit" onclick="login()">Войти</button>
+    </div>
+</section>
 {% endblock %}
