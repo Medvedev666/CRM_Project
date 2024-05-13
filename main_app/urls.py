@@ -14,6 +14,10 @@ urlpatterns = [
     path('user_profile/edit/<str:username>/', edit_user_profile, name='edit_profile'),
     path('show_post/<int:pk>/', show_posts, name='show_posts'),
 
+    # дать права администратора
+    path('grant_admin/<str:username>/', grant_admin_privileges, name='grant_admin'),
+    path('revoke_admin/<str:username>/', revoke_admin_privileges, name='revoke_admin'),
+
     # регистрация / авторизация
     path('signup/', signup, name='account_signup'),
     path('login/', user_login, name='account_login'),

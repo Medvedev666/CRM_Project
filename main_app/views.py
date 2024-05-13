@@ -213,3 +213,23 @@ def show_posts(request, pk):
         'user_r': request.user,
     }
     return render(request, 'show_posts.html', context)
+
+@login_required
+def grant_admin_privileges(request, username):
+    if request.user.is_superuser:
+        user = get_object_or_404(CustomUser, username=username)
+        user.is_admin = True
+        user.save()
+        return redirect('home')
+    else:
+        return redirect('home')
+
+@login_required
+def revoke_admin_privileges(request, username):
+    if request.user.is_superuser:
+        user = get_object_or_404(CustomUser, username=username)
+        user.is_admin = False
+        user.save()
+        return redirect('home')
+    else:
+        return redirect('home')

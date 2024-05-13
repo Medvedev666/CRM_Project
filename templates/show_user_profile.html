@@ -24,6 +24,12 @@
                             <div style="margin-top: 50px;">
                                 {% if user_model.pk == request_user.pk %}
                                 <a href="{% url 'edit_profile' username=user_model.username %}">Редактировать</a>
+                                {% else %}
+                                {% if not user_model.is_admin %}
+                                <a href="{% url 'grant_admin' username=user_model.username %}">Выдать права администратора</a>
+                                {% else %}
+                                <a href="{% url 'revoke_admin' username=user_model.username %}">Удалить права администратора</a>
+                                {% endif %}
                                 {% endif %}
                             </div>
                         </div>
