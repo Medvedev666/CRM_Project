@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django import forms
 
-from .models import Posts, CustomUser
+from .models import Posts, CustomUser, Category, UserComments
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -20,7 +20,7 @@ class CustomUserChangeForm(UserChangeForm):
 class CreationPosts(forms.ModelForm):
     class Meta:
         model = Posts
-        fields = ['title', 'content', 'photo']
+        fields = ['title', 'slug', 'content', 'photo', 'cat']
     
     widgets = {
             'title': forms.TextInput(attrs={'class': 'form-input'}),
@@ -43,7 +43,7 @@ class AdminCreationPosts(CreationPosts): # форма для админа
 class EditPostsForm(forms.ModelForm):
     class Meta:
         model = Posts
-        fields = ['title', 'content', 'photo']
+        fields = ['title', 'slug', 'content', 'photo', 'cat']
 
 
 class EditUserInfoForm(forms.ModelForm):
@@ -52,4 +52,23 @@ class EditUserInfoForm(forms.ModelForm):
         fields = [
             'first_name', 'last_name',
             'email', 'picture',
+        ]
+
+class NewCategory(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = [
+            'name', 'slug',
+        ]
+
+class SearchForm(forms.Form):
+    query = forms.CharField(max_length=200, required=False, label='Найти')
+    topic = forms.ModelChoiceField(queryset=Category.objects.all(), required=False, label='Категория')
+
+
+class MakeComments(forms.ModelForm):
+    class Meta:
+        model = UserComments
+        fields = [
+            'content',
         ]

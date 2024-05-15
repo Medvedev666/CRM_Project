@@ -52,7 +52,8 @@
                         <img class="blog-image" src="{{ article.photo.url }}" alt="article image">
                         <div class="blog-block">
                             <h1 class="blog-title">{{ article.title }}</h1>
-                            <p class="blog-content">{{ article.content }}... <a href="{% url 'show_posts' pk=article.pk %}">Читать
+                            <p>Категория: {{ article.cat.name }}</p><br>
+                            <p class="blog-content">{{ article.content }}... <a href="{% url 'show_posts' slug=article.slug %}">Читать
                                     ещё ></a></p>
                             <!-- Просмотры и дата публикации -->
                             <div class="blog-info">

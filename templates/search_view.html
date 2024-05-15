@@ -1,0 +1,87 @@
+{% extends '_base.html' %}
+{% load static %}
+{% load app_tags %}
+
+{% block content %}
+<main class="main">
+    <section>
+        <p class="hero-subtitle">Посты</p>
+        <form class="form-header" action="{% url 'query' %}" method="GET">
+            <input id="primary-search" class="au-input au-input--xl" type="text" name="q" value="{{ request.GET.q }}"
+                placeholder="Поиск..." required />
+            <button class="modal-login-btn" type="submit">Отправить</button>
+        </form>
+        {% if count == 0 %}
+        Ничего не найдено по запросу "{{ query }}"
+        {% else %}
+        Найдено {{ count }} 
+        {% if count == 1 %}результат{% elif count == 2 or count == 3 or count == 4 %}результата{% else %}рузультатов{% endif %} для "{{ query }}"
+        {% endif %}
+
+    </section>
+
+    <div class="container" id="posts-container">
+        {% for article in object_list %}
+
+        {% with article|class_name as klass %}
+
+        {% if klass == 'Category' %}
+        <section class="blog">
+            <div class="blog-block">
+                <h1 class="blog-title"><a href="{{ article.get_absolute_url }}">{{ article.name }}</a></h1>
+            </div>
+        </section>
+        {% elif klass == 'Posts' %}
+        <section class="blog">
+            <div class="top-block">
+            </div>
+            <a href="{% url 'show_posts' slug=article.slug %}">
+                <img class="blog-image" src="{{ article.photo.url }}" alt="article image">
+            </a>
+            <div class="blog-block">
+                <h1 class="blog-title"><a href="{% url 'show_posts' slug=article.slug %}">{{ article.title }}</a></h1>
+                <p>Категория: {{ article.cat.name }}</p><br>
+                <p class="blog-content">{{ article.content }}</p>
+                <!-- Просмотры и дата публикации -->
+                <div class="blog-info">
+                    <p style="margin-right: 10px;">Автор:</p>
+                    <a style="margin-right: 20px;" href="{% url 'user_profile' username=article.creater.username %}"> {{ article.creater.get_full_name }}</a>
+                    <time class="blog-data">{{ article.time_create }}</time>
+                    <ion-icon name="eye-outline" class="views-icon"></ion-icon>
+                    <span style="margin-right: 20px;" class="views-count">Просмотры: {{ article.views.count }}</span>
+                    <a href="{% url 'show_posts' slug=article.slug %}" class="views-count">
+                        {% for post, comment in comments_dict.items %}
+                        {% if post == article %}
+                        Комментарии: {{ comment }}
+                        {% endif %}
+                        {% endfor %}
+                    </a>
+                </div>
+            </div>
+        </section>
+        {% elif klass == 'UserComments' %}
+        <section class="blog">
+            <div class="blog-block">
+                <p>Комментарий к посту:</p>
+                <h1 class="blog-title"><a href="{% url 'show_posts' slug=article.post.slug %}">{{ article.post.title }}</a></h1>
+                <p>Категория: {{ article.post.cat.name }}</p><br>
+                <p class="blog-content">{{ article.content }}</p>
+                <!-- Просмотры и дата публикации -->
+                <div class="blog-info">
+                    <p style="margin-right: 10px;">Автор комментария:</p>
+                    <a style="margin-right: 20px;" href="{% url 'user_profile' username=article.creater.username %}"> 
+                        {{ article.creater.get_full_name }}</a>
+                    <time class="blog-data">{{ article.time_create }}</time>
+                    </a>
+                </div>
+            </div>
+        </section>
+        {% else %}
+        {% endif %}
+
+        {% endwith %}
+
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}

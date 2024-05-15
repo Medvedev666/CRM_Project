@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 
 from PIL import Image
 
@@ -110,15 +112,49 @@ class AnonimReader(models.Model):
     def __str__(self):
         return self.device_id
 
+# для поиска постов
+class PostQuerySet(models.query.QuerySet):
+
+    def search(self, query):
+        lookups = (Q(title__icontains=query) | 
+                  Q(content__icontains=query) |
+                  Q(cat__name__icontains=query)
+                  )
+        return self.filter(lookups).distinct()
+    
+class PostManager(models.Manager):
+    def get_queryset(self):
+        return PostQuerySet(self.model, using=self._db)
+
+    def all(self):
+        return self.get_queryset()
+
+    def get_by_id(self, id):
+        qs = self.get_queryset().filter(id=id) # Post.objects == self.get_queryset()
+        if qs.count() == 1:
+            return qs.first()
+        return None
+
+    def search(self, query):
+        return self.get_queryset().search(query)
+    
+
 class Posts(models.Model):
     creater = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, verbose_name="Заголовок")
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL", validators=[
+                               MinLengthValidator(5, message="Минимум 5 символов"),
+                               MaxLengthValidator(100, message="Максимум 100 символов"),
+                           ])
     content = models.TextField(blank=True, verbose_name="Текст статьи")
     photo = models.ImageField(upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
     time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
     time_update = models.DateTimeField(auto_now=True, verbose_name="Время изменения")
     is_published = models.BooleanField(default=False, verbose_name="Публикация")
     views = models.ManyToManyField(AnonimReader, blank=True)
+    cat = models.ForeignKey('Category', on_delete=models.PROTECT, related_name='posts', verbose_name="Категории")
+
+    objects = PostManager()
 
     def __str__(self):
         return self.title
@@ -134,8 +170,74 @@ class Posts(models.Model):
 
 class Like(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL,
-                             related_name='likes',
+                             related_name='user_post_like',
                              default=None,
                              on_delete=models.CASCADE)
     article = models.ForeignKey(Posts, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(default=0)
+
+# для поиска по категориям
+class CategoryManager(models.Manager):
+    def search(self, query=None):
+        qs = self.get_queryset()
+        if query is not None:
+            or_lookup = (Q(name__icontains=query) | 
+                         Q(slug__icontains=query)
+                        )
+            qs = qs.filter(or_lookup).distinct() # distinct() is often necessary with Q lookups
+        return qs
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, db_index=True, verbose_name="Категория")
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
+
+    objects = CategoryManager()
+
+    class Meta:
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('category', kwargs={'slug': self.slug})
+
+# для поиска по комментариям
+class UserCommentsManager(models.Manager):
+    def search(self, query=None):
+        qs = self.get_queryset()
+        if query is not None:
+            or_lookup = (Q(post__title__icontains=query) | 
+                         Q(content__icontains=query) |
+                         Q(creater__username__icontains=query)
+                        )
+            qs = qs.filter(or_lookup).distinct() # distinct() is often necessary with Q lookups
+        return qs
+
+class UserComments(models.Model):
+    post = models.ForeignKey(Posts, on_delete=models.CASCADE)
+    creater = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    content = models.TextField(blank=True, verbose_name="Комментарий")
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
+
+    objects = UserCommentsManager()
+
+    def __str__(self):
+        return f'Комментарий от {self.creater}'
+
+    class Meta:
+        verbose_name = "Коментарий"
+        verbose_name_plural = "Коментарии"
+
+class LikeForComments(models.Model):
+    user = models.ForeignKey(AUTH_USER_MODEL,
+                             related_name='user_comment_like',
+                             default=None,
+                             on_delete=models.CASCADE)
+    article = models.ForeignKey(UserComments, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Лайк к комментарию"
+        verbose_name_plural = "Лайк к комментариям"

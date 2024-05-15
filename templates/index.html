@@ -3,33 +3,47 @@
 
 {% block content %}
 <main class="main">
-	<div class="container">
-		<section >
-			<p class="hero-subtitle">Cообщения</p>
-		</section>
+	<section>
+		<p class="hero-subtitle">Посты</p>
+		<form class="form-header" action="{% url 'query' %}" method="GET">
+			<input id="primary-search" class="au-input au-input--xl" type="text" name="q" value="{{ request.GET.q }}"
+				placeholder="Поиск..." required />
+			<button class="modal-login-btn" type="submit">Отправить</button>
+		</form>
+	</section>
+	
+	<div style="display: flex; margin: 20px;">
+		<a style="margin: 0 20px;" id="sort-alpha">А-я</a>
+		<a style="margin: 0 20px;" id="sort-date">Дата</a>
+	</div>
+
+	<div class="container" id="posts-container">
 		{% if posts %}
 		{% for article in posts %}
 		<section class="blog">
 			<div class="top-block">
-				<!-- <div>
-					<a href="{% url 'user_profile' username=article.creater.username %}">
-						<img class="user-image" src="{{ article.creater.get_picture }}" alt="article image">
-					</a>
-				</div> -->
-				<!-- <a href="{% url 'user_profile' username=article.creater.username %}">{{ article.creater.get_full_name }}</a> -->
 			</div>
-			<img class="blog-image" src="{{ article.photo.url }}" alt="article image">
+			<a href="{% url 'show_posts' slug=article.slug %}">
+				<img class="blog-image" src="{{ article.photo.url }}" alt="article image">
+			</a>
 			<div class="blog-block">
-				<h1 class="blog-title">{{ article.title }}</h1>
-				<p class="blog-content">{{ article.content }}... <a href="{% url 'show_posts' pk=article.pk %}">Читать
-						ещё ></a></p>
+				<h1 class="blog-title"><a href="{% url 'show_posts' slug=article.slug %}">{{ article.title }}</a></h1>
+				<p>Категория: {{ article.cat.name }}</p><br>
+				<p class="blog-content">{{ article.content }}</p>
 				<!-- Просмотры и дата публикации -->
 				<div class="blog-info">
 					<p style="margin-right: 10px;">Автор:</p> 
 					<a style="margin-right: 20px;" href="{% url 'user_profile' username=article.creater.username %}"> {{ article.creater.get_full_name }}</a>
 					<time class="blog-data">{{ article.time_create }}</time>
 					<ion-icon name="eye-outline" class="views-icon"></ion-icon>
-					<span class="views-count">Просмотры: {{ article.views.count }}</span>
+					<span style="margin-right: 20px;" class="views-count">Просмотры: {{ article.views.count }}</span>
+					<a href="{% url 'show_posts' slug=article.slug %}" class="views-count">
+						{% for post, comment in comments_dict.items %}
+							{% if post == article %}
+							Комментарии: {{ comment }}
+							{% endif %}
+						{% endfor %}
+					</a>
 				</div>
 			</div>
 		</section>
@@ -37,4 +51,31 @@
 		{% endif %}
 	</div>
 </main>
+{% endblock %}
+
+
+{% block JS %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+	$(document).ready(function () {
+		$("#sort-date").click(function () {
+			sortPosts('date');
+		});
+
+		$("#sort-alpha").click(function () {
+			sortPosts('alpha');
+		});
+
+		function sortPosts(sortBy) {
+			$.ajax({
+				url: "{% url 'home' %}",
+				type: "GET",
+				data: { 'sort_by': sortBy },
+				success: function (response) {
+					$("#posts-container").html(response.html); // Обновляем только содержимое контейнера
+				}
+			});
+		}
+	});
+</script>
 {% endblock %}

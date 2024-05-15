@@ -25,6 +25,7 @@ a {
 
 a:hover {
 	color: #939393;
+	cursor: pointer;
 }
 
 input[name="username"],
@@ -982,4 +983,96 @@ h2 {
 			font-size: 10px;
 		}
 	}
+}
+
+/* меню слева */
+.left-chapters {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 200px;
+	/* Ширина блока */
+	background-color: #f0f0f0;
+	/* Цвет фона блока */
+	overflow-y: auto;
+	/* Добавляет вертикальную прокрутку, если контент больше размера блока */
+}
+
+/* CSS для списка */
+.left-chapters ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+/* CSS для элементов списка */
+.left-chapters li {
+	padding: 10px;
+	border-bottom: 1px solid #ccc;
+	/* Разделитель между элементами списка */
+}
+
+/* CSS для выбранного элемента списка */
+.left-chapters li.selected {
+	font-weight: bold;
+	background-color: #ddd;
+	/* Цвет фона выбранного элемента */
+}
+
+
+/* Стили для таблицы */
+.table {
+	text-align: center;
+	width: 100%;
+	/* Делаем таблицу по длине блока */
+}
+
+/* Стили для заголовка таблицы */
+.table thead {
+	background-color: #000;
+	/* Черный фон */
+	color: #fff;
+	/* Белый текст */
+}
+
+/* Стили для строк таблицы */
+.table tbody tr:nth-child(odd) {
+	background-color: #f8f9fa;
+	/* Светло-серый фон для нечетных строк */
+}
+
+.table tbody tr:nth-child(even) {
+	background-color: #fff;
+	/* Белый фон для четных строк */
+}
+
+/* Стили для ячеек таблицы */
+.table tbody td {
+	border: 1px solid #dee2e6;
+	/* Серый цвет границ */
+	padding: 8px;
+	/* Отступы внутри ячеек */
+}
+
+/* Стили для заголовков столбцов */
+.table th {
+	border: 1px solid #dee2e6;
+	/* Серый цвет границ */
+	padding: 8px;
+	/* Отступы внутри заголовков */
+}
+
+.form-header {
+	display: flex;
+	position: relative;
+	max-width: none;
+}
+
+.form-header input {
+	margin: 0 20px;
+}
+
+.form-header button {
+	margin: 0 20px;
+	max-width: 200px;
 }

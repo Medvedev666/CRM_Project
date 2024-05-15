@@ -1,4 +1,5 @@
 {% load static %}
+{% load app_tags %}
 <!DOCTYPE html>
 <html lang="ru">
 
@@ -37,7 +38,29 @@
         </div>
     </header>
     <div class="overlay"></div>
-    <div class="d-flex">
+<!-- меню справа -->
+    <table>
+        <tr>
+            <td valign="top" class="left-chapters">
+                <ul style="margin-top: 46px;">
+                    <li>Выберите категорию:</li>
+                    {% if cat_selected == 0 %}
+                    <li class="selected">Все категории</li>
+                    {% else %}
+                    <li><a href="{% url 'home' %}">Все категории</a></li>
+                    {% endif %}
+
+                    {% show_categories 'name' cat_selected %}
+
+                    {% if user.is_admin or user.is_superuser %}
+                    <li><a style="margin-top: 20px;" href="{% url 'show_category' %}">Управление категориями</a></li>
+                    {% endif %}
+                </ul>
+            </td>
+        </tr>
+    </table>
+<!-- конец меню справа -->
+    <div class="d-flex" style="margin-left: 200px;">
     {% block content %}{% endblock %}
     </div>
     {% block JS %}{% endblock %}

@@ -12,7 +12,14 @@ urlpatterns = [
     path('edit_post/<int:post_id>/', edit_post, name='edit_post'),
     path('user_profile/<str:username>/', show_user_profile, name='user_profile'),
     path('user_profile/edit/<str:username>/', edit_user_profile, name='edit_profile'),
-    path('show_post/<int:pk>/', show_posts, name='show_posts'),
+    path('show_post/<slug>/', show_posts, name='show_posts'),
+    path('show_post/make_comments/<int:pk>/', make_comments, name='make_comments'),
+
+    # управление категориями
+    path('category/<slug>', PostsCategory.as_view(), name='category'),
+    path('show_category/', show_category, name='show_category'),
+    path('show_category/new_category', new_category, name='new_category'),
+    path('category/delete_category/<int:cat_id>', delete_category, name='delete_category'),
 
     # дать права администратора
     path('grant_admin/<str:username>/', grant_admin_privileges, name='grant_admin'),
@@ -26,4 +33,7 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('logout/', user_logout, name='account_logout'),
+
+    # поиск
+    path('search/', SearchView.as_view(), name='query'), 
 ]

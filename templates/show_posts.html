@@ -5,9 +5,10 @@
 <main class="main">
     <div class="container">
         <section class="blog">
-            <div class="top-block">
+            <div>
+                <img style="max-width: 600px; margin-bottom: 50px;" src="{{ post.photo.url }}" alt="post image">
+                <a href="{% url 'make_comments' pk=post.pk %}" class="modal-login-btn">Оставить комментарий</a>
             </div>
-            <img style="max-width: 600px;" src="{{ post.photo.url }}" alt="post image">
             <div class="blog-block">
                 <h1 class="blog-title">{{ post.title }}</h1>
                 <p class="blog-content">{{ post.content }}</p>
@@ -21,8 +22,25 @@
                     <ion-icon name="eye-outline" class="views-icon"></ion-icon>
                     <span class="views-count">Просмотры: {{ post.views.count }}</span>
                 </div>
+                
             </div>
         </section>
     </div>
+
+    {% for com in comments %}
+    <div class="container">
+        <section class="blog">
+            <div class="blog-block">
+                <h1 class="blog-title">{{ com.creater.username }}</h1>
+                <p class="blog-content">{{ com.content }}</p>
+                <!-- Просмотры и дата публикации -->
+                <div class="blog-info">
+                    <time class="blog-data">{{ com.time_create }}</time>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endfor %}
+
 </main>
 {% endblock %}

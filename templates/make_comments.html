@@ -1,0 +1,12 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block content %}
+<div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="modal-login-btn" type="submit">Отправить</button>
+    </form>
+</div>
+{% endblock %}

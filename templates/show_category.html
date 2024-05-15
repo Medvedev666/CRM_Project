@@ -1,0 +1,33 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="main">
+    <div class="container">
+        <h2>Панель управления категориями</h2>
+        <a style="margin-left: 30px;" href="{% url 'new_category' %}">Добавить категорию</a>
+        <section class="blog">
+            <table class="table table-light table-striped">
+                <thead>
+                    <tr>
+                        <th>Название категории</th>
+                        <th>URL</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in category %}
+                    <tr>
+                        <td>{{ cat.name }}</td>
+                        <td>{{ cat.slug }}</td>
+                        <td><a href="#">Изменить</a> ||
+                            <a href="{% url 'delete_category' cat_id=cat.pk %}">Удалить</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

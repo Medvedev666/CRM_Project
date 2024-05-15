@@ -3,30 +3,92 @@ from django.views.generic import TemplateView, ListView, DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseNotFound
+from django.template.loader import render_to_string
 
 from .models import *
 from .forms import *
+from .utils import DataMixin
 from config.settings import MEDIA_URL
 
 import os
 
-class HomePageView(ListView):
+TITLE = 'TALKTROVE'
+
+class HomePageView(DataMixin, ListView):
     model = Posts
     template_name = 'index.html'
     context_object_name = 'posts'
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] ="TalkTrove"
+        context['cat_selected'] = 0
+        context['title'] ="TALKTROVE"
+        
+        comments_dict = {}
+        for post in context['posts']:
+            comments_dict[post] = UserComments.objects.filter(post=post).count()
+
+        context['comments_dict'] = comments_dict
+
         return context
     
     def get_queryset(self):
         return Posts.objects.filter(is_published=True)
+    
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            sort_by = self.request.GET.get('sort_by')
+            queryset = self.get_queryset()
+
+            if sort_by == 'date':
+                queryset = queryset.order_by('-time_create')
+            elif sort_by == 'alpha':
+                queryset = queryset.order_by('title')
+
+            comments_dict = {}
+            for post in context['posts']:
+                comments_dict[post] = UserComments.objects.filter(post=post).count()
+
+            context['comments_dict'] = comments_dict
+
+            render_context = {'posts': queryset, 'comments_dict': comments_dict}
+            html = render_to_string('posts_partial.html', render_context)  # Здесь используется отдельный шаблон для постов
+            return JsonResponse({'html': html})
+        else:
+            return super().render_to_response(context, **response_kwargs)
+    
+    
+class PostsCategory(DataMixin, ListView):
+    template_name = 'index.html'
+    context_object_name = 'posts'
+    allow_empty = True
+
+    def get_queryset(self):
+        slug = self.kwargs.get('slug')
+        if slug:
+            return Posts.objects.filter(cat__slug=slug, is_published=True)
+        return Posts.objects.none()
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        print(f'{kwargs=}')
+        print(f'{self.kwargs=}')
+        context = super().get_context_data(**kwargs)
+        context['title'] ="TALKTROVE"
+        if context['posts']:
+            context['title'] = context['title'] + ' - ' + str(context['posts'][0].cat.name)
+            print(f"это: {context['posts'][0]}")
+            context['cat_selected'] = context['posts'][0].cat.pk
+            print(context['cat_selected'])
+        else:
+            context['title'] = context['title'] + ' - ' + str(Category.objects.get(slug=self.kwargs['slug']).name)
+            context['cat_selected'] = Category.objects.get(slug=self.kwargs['slug']).pk
+        return context
+    
 
 def signup(request):
     if request.method == 'POST':
@@ -36,7 +98,10 @@ def signup(request):
             return redirect('account_login')
     else:
         form = UserCreationForm()
-    return render(request, 'account/signup.html', {'form': form})
+    return render(request, 'account/signup.html', {
+        'title': TITLE + ' || Войти',
+        'form': form,
+    })
 
 def user_login(request):
     if request.method == 'POST':
@@ -70,37 +135,30 @@ def user_logout(request):
 
 @login_required
 def delete_posts(request, posts_id):
-    try:
-        posts_instance = get_object_or_404(Posts, id=posts_id)
-        if request.user != posts_instance.creater and request.user.is_superuser != True and request.user.is_admin != True:
-            return redirect('home')
 
-        posts_instance.delete()
+    posts_instance = get_object_or_404(Posts, id=posts_id)
+    if request.user != posts_instance.creater and request.user.is_superuser != True and request.user.is_admin != True:
         return redirect('home')
-    except Posts.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Пост не найтен'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    posts_instance.delete()
+    return redirect('home')
 
 @login_required
 def public_posts(request, posts_id):
-    try:
-        posts_instance = get_object_or_404(Posts, id=posts_id)
-        if request.user != posts_instance.creater and request.user.is_superuser != True and request.user.is_admin != True:
-            return redirect('home')
 
-        posts_instance.is_published = True
-        posts_instance.save()
+    posts_instance = get_object_or_404(Posts, id=posts_id)
+    if request.user != posts_instance.creater and request.user.is_superuser != True and request.user.is_admin != True:
         return redirect('home')
-    except Posts.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Пост не найтен'}, status=404)
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+    posts_instance.is_published = True
+    posts_instance.save()
+    return redirect('home')
+
 
 @login_required
 def check_message(request):
     if request.user.is_superuser or request.user.is_admin:
-        title = 'Админ панель'
+        title = TITLE + ' || Админ панель'
     else:
         return redirect('home')
     
@@ -126,7 +184,7 @@ def create_posts(request):
         form = CreationPosts()
 
     context = {
-        'title': 'Новое сообщение',
+        'title': TITLE + ' || Новое сообщение',
         'form': form
     }
     return render(request, 'new_posts.html', context)
@@ -147,7 +205,7 @@ def edit_post(request, post_id):
         form = EditPostsForm(instance=post_instance)
 
     context = {
-        'title': 'Редактировать сообщение',
+        'title': TITLE + ' || Редактировать сообщение',
         'form': form, 
         'post_instance': post_instance
     }
@@ -156,9 +214,9 @@ def edit_post(request, post_id):
 @login_required
 def show_user_profile(request, username):
     if request.user.username == username:
-        title = 'Личный кабинет'
+        title = TITLE + ' || Личный кабинет'
     else:
-        title = f'Профиль пользователя {username}'
+        title = TITLE + f' || Профиль пользователя {username}'
     user_model = CustomUser.objects.get(username=username)
     user_ad = Posts.objects.filter(creater=user_model)
     
@@ -186,31 +244,33 @@ def edit_user_profile(request, username):
         form = EditUserInfoForm(instance=user_instance)
 
     context = {
-        'title': 'Редактировать профиль',
+        'title': TITLE + ' || Редактировать профиль',
         'form': form, 
         'user_instance': user_instance
     }
     return render(request, 'edit_user.html', context)
 
-def show_posts(request, pk):
-    post = Posts.objects.get(pk=pk)
+def show_posts(request, slug):
+    post = Posts.objects.get(slug=slug)
 
     views = post.views.count()
     likes = post.like_set.count()
     like = False
+    comments = UserComments.objects.filter(post=post).order_by('-time_create')
 
     if request.user.is_authenticated:
         if post.like_set.filter(user=request.user).exists():
             like = True
 
     context = {
-        'title': 'Сообщение',
+        'title': TITLE + ' || Сообщение',
         'post': post,
         'views': views,
         'likes': likes,
         'is_auth': request.user.is_authenticated,
         'user_like': like,
         'user_r': request.user,
+        'comments': comments,
     }
     return render(request, 'show_posts.html', context)
 
@@ -233,3 +293,104 @@ def revoke_admin_privileges(request, username):
         return redirect('home')
     else:
         return redirect('home')
+    
+@login_required
+def show_category(request):
+    if not (request.user.is_admin or request.user.is_superuser):
+        return redirect('home')
+
+    category = Category.objects.all()
+
+    context = {
+        'title': TITLE + ' || Все категории',
+        'category': category,
+    }
+    return render(request, 'show_category.html', context)
+
+@login_required
+def new_category(request):
+    if not (request.user.is_admin or request.user.is_superuser):
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = NewCategory(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('show_category')
+    else:
+        form = NewCategory()
+
+    context = {
+        'title': TITLE + ' || Добавить категорию',
+        'form': form, 
+    }
+    return render(request, 'new_category.html', context)
+    
+@login_required
+def delete_category(request, cat_id):
+    if not (request.user.is_admin or request.user.is_superuser):
+        return redirect('home')
+
+    category = get_object_or_404(Category, id=cat_id)
+    category.delete()
+
+    return redirect('show_category')
+
+@login_required
+def make_comments(request, pk):
+    if request.method == 'POST':
+        form = MakeComments(request.POST, request.FILES)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.creater_id = request.user.id  # Установите пользователя
+            comment.post_id = pk # ид поста
+            comment.save()
+            form.save()
+            return redirect('show_posts', pk=pk)  # Перенаправление на страницу успешного создания
+    else:
+        form = MakeComments()
+
+    context = {
+        'title': TITLE + ' || Оставить комментарий',
+        'form': form
+    }
+    return render(request, 'make_comments.html', context)
+
+
+
+class SearchView(ListView):
+
+    template_name = 'search_view.html'
+    count = 0
+    
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['title'] = TITLE + ' || Результаты поиска'
+        context['count'] = self.count or 0
+        context['query'] = self.request.GET.get('q')
+        return context
+
+    def get_queryset(self):
+
+        from itertools import chain # для объединения нескольких итерируемых объектов
+
+        request = self.request
+        query = request.GET.get('q', None)
+        
+        if query is not None:
+            posts_events_results  = Posts.objects.search(query)
+            comments_results      = UserComments.objects.search(query)
+            category_results = Category.objects.search(query)
+            
+            # объединяем запросы 
+            queryset_chain = chain(
+                    posts_events_results,
+                    comments_results,
+                    category_results,
+            )        
+            qs = sorted(queryset_chain, 
+                        key=lambda instance: instance.pk, 
+                        reverse=True)
+            self.count = len(qs) 
+            return qs
+        return Posts.objects.none()
